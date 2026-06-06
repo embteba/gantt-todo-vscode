@@ -38,6 +38,37 @@
 - **ワークスペース使用時**: `.vscode/gantt-todo-data.json`
 - **グローバル保存**: グローバルストレージディレクトリ
 
+## インストール
+
+### VS Code Extension Marketplace からのインストール
+
+VS Code の Extension Marketplace から「Gantt TODO Board」を検索してインストールしてください。
+
+### リポジトリからのインストール（開発者向け）
+
+1. **リポジトリのクローン**
+
+```bash
+git clone https://github.com/embteba/gantt-todo-vscode.git
+cd gantt-todo-vscode
+```
+
+2. **依存パッケージのインストール**
+
+```bash
+npm install
+```
+
+3. **拡張機能のビルド**
+
+```bash
+npm run compile
+```
+
+4. **VS Code での実行**
+
+VS Code でこのフォルダを開き、`F5` キーを押すか「実行 > デバッグの開始」を選択して拡張機能を実行します。
+
 ## 開発
 
 ### セットアップ
