@@ -1,0 +1,52 @@
+{
+  "name": "gantt-todo-vscode",
+  "displayName": "Gantt TODO Board",
+  "description": "Lightweight TODO + Gantt board in VS Code Webview.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ganttTodo.open",
+        "title": "Gantt TODO: Open Board"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "ganttTodo.open",
+        "key": "ctrl+d ctrl+d",
+        "when": "editorTextFocus || explorerViewletVisible || workbenchPanelVisible"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/gantt-todo-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/gantt-todo-vscode/issues"
+  },
+  "homepage": "https://github.com/yourusername/gantt-todo-vscode#readme",
+  "devDependencies": {
+    "@types/node": "^20.14.12",
+    "@types/vscode": "^1.92.0",
+    "typescript": "^5.5.4",
+    "@vscode/vsce": "^2.31.1"
+  }
+}

@@ -1,0 +1,13 @@
+.git
+.gitignore
+.vscode
+.vscode-test
+**/*.ts
+**/*.map
+node_modules
+src
+dist/extension.js.map
+dist/storage.js.map
+dist/types.js.map
+npm-debug.log
+*.vsix
