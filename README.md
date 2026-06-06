@@ -98,10 +98,27 @@ npm run watch
 # VS Code でこのフォルダを開き、F5 を押すか「実行 > デバッグの開始」を選択
 ```
 
-### パッケージング
+### パッケージング（VSIX ファイルの作成）
+
+拡張機能を VSIX ファイルにパッケージングするには：
 
 ```bash
 npm run package
+```
+
+このコマンドは `gantt-todo-vscode-{version}.vsix` ファイルを生成します。
+
+**VSIX ファイルのインストール：**
+
+1. VS Code を開く
+2. 拡張機能ビューを開く（`Ctrl+Shift+X`）
+3. 右上の「...」メニューから「VSIX からインストール」を選択
+4. 生成された VSIX ファイルを選択してインストール
+
+**または、コマンドラインでインストール：**
+
+```bash
+code --install-extension gantt-todo-vscode-{version}.vsix
 ```
 
 ## サポート
