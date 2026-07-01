@@ -3,3 +3,4 @@ main.js
 main.js.map
 coverage/
 dist/
+!release/gantt-todo-board/main.js

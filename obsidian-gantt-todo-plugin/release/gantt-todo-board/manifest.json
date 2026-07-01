@@ -1,0 +1,9 @@
+{
+  "id": "gantt-todo-board",
+  "name": "Gantt TODO Board",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Local-only TODO + Gantt board for Obsidian.",
+  "author": "local",
+  "isDesktopOnly": false
+}
