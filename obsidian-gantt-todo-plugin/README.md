@@ -39,12 +39,25 @@ npm run test
 npm run build
 ```
 
+## ビルド不要で使う（配布済みファイル）
+
+このリポジトリの `release/gantt-todo-board/` には、プラグイン実行に必要なファイルをまとめて配置しています。
+
+- `manifest.json`
+- `main.js` (ビルド済み)
+- `styles.css`
+
+Node.js や npm でビルド環境を作らなくても、そのまま利用できます。
+
 ## Obsidianへの導入（手動）
 
-1. このリポジトリで `npm run build` を実行
-2. 以下3ファイルを Vault の `.obsidian/plugins/gantt-todo-board/` に配置
-   - `manifest.json`
-   - `main.js`
-   - `styles.css`
+1. `release/gantt-todo-board/` 内の3ファイルを、Vault の `.obsidian/plugins/gantt-todo-board/` にコピー
 3. Obsidian の Community Plugins で `Gantt TODO Board` を有効化
 4. コマンドパレットから `Open Gantt TODO Board` を実行
+
+## 開発者向け: 配布フォルダ更新
+
+```bash
+npm install
+npm run build:release
+```

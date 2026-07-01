@@ -1,0 +1,418 @@
+.gantt-todo-board-root {
+  padding: 0;
+}
+
+.gantt-layout {
+  display: grid;
+  grid-template-columns: 3fr 7fr;
+  height: 100%;
+  min-height: 0;
+  background: #0a0a0a;
+  color: #f5f5f5;
+}
+
+.gantt-panel {
+  min-height: 0;
+}
+
+.gantt-left {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  border-right: 1px solid #27272a;
+}
+
+.gantt-right {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  padding: 10px;
+}
+
+.gantt-right > h3,
+.gantt-table-section > h3 {
+  margin: 0;
+  font-size: 12px;
+  color: #d4d4d8;
+}
+
+.gantt-header {
+  padding: 10px;
+  border-bottom: 1px solid #27272a;
+}
+
+.gantt-header > h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.gantt-storage-path {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.gantt-form {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-bottom: 1px solid #27272a;
+}
+
+.gantt-form input,
+.gantt-form select,
+.gantt-form button,
+.gantt-filter select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  background: #171717;
+  color: #f4f4f5;
+  padding: 7px 9px;
+  font-size: 13px;
+}
+
+.gantt-date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.gantt-date-field {
+  display: grid;
+  gap: 4px;
+}
+
+.gantt-date-field label {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+.gantt-primary-button {
+  cursor: pointer;
+  border-color: #737373;
+  background: #f5f5f5;
+  color: #171717;
+  font-weight: 600;
+}
+
+.gantt-filter {
+  padding: 10px;
+  border-bottom: 1px solid #27272a;
+}
+
+.gantt-table-section {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 0;
+}
+
+.gantt-table-section > h3 {
+  padding: 10px;
+  border-bottom: 1px solid #27272a;
+}
+
+.gantt-table-wrap {
+  overflow: auto;
+}
+
+.gantt-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.gantt-table-wrap thead {
+  position: sticky;
+  top: 0;
+  background: #0a0a0a;
+  z-index: 2;
+}
+
+.gantt-table-wrap th,
+.gantt-table-wrap td {
+  text-align: left;
+  border-bottom: 1px solid #1c1c1f;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.gantt-table-wrap tbody tr {
+  cursor: pointer;
+}
+
+.gantt-table-wrap tbody tr:hover,
+.gantt-table-wrap tbody tr.is-editing {
+  background: #171717;
+}
+
+.gantt-table-wrap td.is-title {
+  font-weight: 600;
+}
+
+.gantt-delete-button {
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  background: transparent;
+  color: #d4d4d8;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.gantt-delete-button:hover {
+  border-color: #7f1d1d;
+  color: #fda4af;
+}
+
+.gantt-form-error {
+  margin: 0;
+  border: 1px solid #7f1d1d;
+  border-radius: 6px;
+  background: rgb(127 29 29 / 0.2);
+  color: #fca5a5;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.gantt-form-error.is-hidden {
+  display: none;
+}
+
+.status-badge,
+.priority-badge {
+  display: inline-flex;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-todo {
+  background: #52525b;
+}
+
+.status-doing {
+  background: #a16207;
+}
+
+.status-done {
+  background: #166534;
+}
+
+.status-badge.status-todo {
+  border-color: #0c4a6e;
+  background: rgb(12 74 110 / 0.25);
+  color: #7dd3fc;
+}
+
+.status-badge.status-doing {
+  border-color: #78350f;
+  background: rgb(120 53 15 / 0.25);
+  color: #fcd34d;
+}
+
+.status-badge.status-done {
+  border-color: #14532d;
+  background: rgb(20 83 45 / 0.25);
+  color: #86efac;
+}
+
+.priority-high {
+  border-color: #881337;
+  background: rgb(136 19 55 / 0.3);
+  color: #fda4af;
+}
+
+.priority-medium {
+  border-color: #4c1d95;
+  background: rgb(76 29 149 / 0.3);
+  color: #c4b5fd;
+}
+
+.priority-low {
+  border-color: #164e63;
+  background: rgb(22 78 99 / 0.3);
+  color: #67e8f9;
+}
+
+.gantt-canvas {
+  position: relative;
+  overflow: auto;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 8px;
+  background: #0a0a0a;
+}
+
+.gantt-empty {
+  margin: 0;
+  padding: 6px 4px;
+  color: #71717a;
+}
+
+.gantt-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gantt-axis {
+  display: grid;
+  align-items: start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.gantt-axis-label {
+  font-size: 11px;
+  color: rgb(161 161 170 / 0.95);
+}
+
+.gantt-axis-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gantt-axis-month-track {
+  position: relative;
+  height: 18px;
+  border-bottom: 1px solid rgb(39 39 42 / 0.95);
+}
+
+.gantt-axis-month-segment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid rgb(63 63 70 / 0.85);
+  z-index: 2;
+}
+
+.gantt-axis-month-label {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  font-size: 10px;
+  color: rgb(212 212 216 / 0.95);
+  white-space: nowrap;
+}
+
+.gantt-axis-day-track {
+  position: relative;
+  height: 30px;
+  border-bottom: 1px solid rgb(39 39 42 / 0.95);
+  background-image: linear-gradient(to right, rgb(115 115 115 / 0.14) 1px, transparent 1px);
+  background-size: var(--day-width, 24px) 100%;
+}
+
+.gantt-day-cell {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.gantt-axis-day-track .gantt-day-cell.weekday,
+.gantt-track .gantt-day-cell.weekday {
+  background: rgb(255 255 255 / 0.008);
+}
+
+.gantt-axis-day-track .gantt-day-cell.weekend,
+.gantt-track .gantt-day-cell.weekend {
+  background: rgb(239 68 68 / 0.065);
+}
+
+.gantt-axis-tick {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 7px;
+  background: rgb(63 63 70 / 0.95);
+  z-index: 3;
+}
+
+.gantt-axis-day-label {
+  position: absolute;
+  bottom: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.gantt-axis-day-number {
+  font-size: 10px;
+}
+
+.gantt-axis-weekday {
+  font-size: 9px;
+  margin-top: 1px;
+}
+
+.gantt-axis-day-label.weekday {
+  color: rgb(161 161 170 / 0.95);
+}
+
+.gantt-axis-day-label.weekend {
+  color: rgb(252 165 165 / 0.95);
+}
+
+.gantt-row {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+}
+
+.gantt-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.gantt-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gantt-dates {
+  font-size: 11px;
+  color: rgb(161 161 170 / 0.95);
+}
+
+.gantt-track {
+  position: relative;
+  height: 24px;
+  border: 1px solid rgb(39 39 42 / 0.95);
+  border-radius: 6px;
+  background-color: rgb(10 10 10 / 0.92);
+  background-image: linear-gradient(to right, rgb(115 115 115 / 0.14) 1px, transparent 1px);
+  background-size: var(--day-width, 24px) 100%;
+  overflow: hidden;
+}
+
+.gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: #ef4444;
+  box-shadow: 0 0 8px rgb(239 68 68 / 0.45);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.gantt-bar {
+  position: absolute;
+  height: 100%;
+  border-radius: 4px;
+  z-index: 4;
+}
