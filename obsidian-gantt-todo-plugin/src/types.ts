@@ -9,6 +9,7 @@ export interface TaskItem {
   endDate: string;
   status: TaskStatus;
   priority: TaskPriority;
+  notePath?: string;
 }
 
 export interface TaskData {
@@ -28,4 +29,12 @@ export interface GanttMetrics {
   labelWidth: number;
   dayWidth: number;
   todayPercent: number;
+}
+
+export interface GanttTodoSettings {
+  notesBaseFolder: string;
+  teamsCalendarIcsPath: string;
+  teamsAutoSyncEnabled: boolean;
+  teamsSyncIntervalMinutes: number;
+  teamsSyncRangeDays: number;
 }

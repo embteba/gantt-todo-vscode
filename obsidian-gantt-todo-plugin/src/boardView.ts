@@ -10,8 +10,14 @@ import {
   getValidStatus,
   getWeekdayLabel,
   isWeekend,
+  matchesQuickFilter,
+  matchesSearchQuery,
   normalizeTask,
+  QuickFilterMode,
+  sortTasks,
+  SortMode,
   startOfDay,
+  summarizeTasks,
   validateDateRange
 } from "./logic";
 import { TaskItem } from "./types";
@@ -20,11 +26,15 @@ interface BoardState {
   tasks: TaskItem[];
   editingId: string | null;
   categoryFilter: string;
+  quickFilter: QuickFilterMode;
+  sortMode: SortMode;
+  searchQuery: string;
   storagePath: string;
 }
 
 interface BoardElements {
   categoryInput: HTMLInputElement;
+  categorySuggestions: HTMLDataListElement;
   titleInput: HTMLInputElement;
   startDateInput: HTMLInputElement;
   endDateInput: HTMLInputElement;
@@ -32,6 +42,10 @@ interface BoardElements {
   prioritySelect: HTMLSelectElement;
   addTaskButton: HTMLButtonElement;
   formError: HTMLParagraphElement;
+  summary: HTMLParagraphElement;
+  searchInput: HTMLInputElement;
+  quickFilter: HTMLSelectElement;
+  sortSelect: HTMLSelectElement;
   categoryFilter: HTMLSelectElement;
   storagePath: HTMLParagraphElement;
   taskRows: HTMLTableSectionElement;
@@ -46,6 +60,9 @@ export class GanttTodoBoardView extends ItemView {
     tasks: [],
     editingId: null,
     categoryFilter: "",
+    quickFilter: "all",
+    sortMode: "start-asc",
+    searchQuery: "",
     storagePath: ""
   };
 
@@ -92,9 +109,15 @@ export class GanttTodoBoardView extends ItemView {
     const header = left.createDiv({ cls: "gantt-header" });
     header.createEl("h2", { text: "Gantt TODO Board" });
     const storagePath = header.createEl("p", { cls: "gantt-storage-path" });
+    const summary = header.createEl("p", { cls: "gantt-summary" });
 
     const form = left.createDiv({ cls: "gantt-form" });
+    const categorySuggestionListId = "gantt-category-suggestions";
     const categoryInput = form.createEl("input", { attr: { type: "text", placeholder: "Category (e.g. Backend)" } });
+    categoryInput.setAttribute("list", categorySuggestionListId);
+    const categorySuggestions = form.createEl("datalist", {
+      attr: { id: categorySuggestionListId }
+    }) as HTMLDataListElement;
     const titleInput = form.createEl("input", { attr: { type: "text", placeholder: "Task title" } });
     const dateRow = form.createDiv({ cls: "gantt-date-row" });
     const startDateInput = this.createLabeledDateInput(dateRow, "Start Date", "startDate");
@@ -106,6 +129,20 @@ export class GanttTodoBoardView extends ItemView {
     const formError = form.createEl("p", { cls: "gantt-form-error is-hidden" });
 
     const filterSection = left.createDiv({ cls: "gantt-filter" });
+    const searchInput = filterSection.createEl("input", {
+      attr: { type: "search", placeholder: "Search by title or category" }
+    });
+    const quickFilter = filterSection.createEl("select");
+    quickFilter.createEl("option", { value: "all", text: "All tasks" });
+    quickFilter.createEl("option", { value: "today", text: "Today" });
+    quickFilter.createEl("option", { value: "overdue", text: "Overdue" });
+    quickFilter.createEl("option", { value: "week", text: "This week" });
+    quickFilter.createEl("option", { value: "done", text: "Done" });
+    const sortSelect = filterSection.createEl("select");
+    sortSelect.createEl("option", { value: "start-asc", text: "Sort: Start date" });
+    sortSelect.createEl("option", { value: "end-asc", text: "Sort: End date" });
+    sortSelect.createEl("option", { value: "priority-desc", text: "Sort: Priority" });
+    sortSelect.createEl("option", { value: "recent-desc", text: "Sort: Recently added" });
     const categoryFilter = filterSection.createEl("select");
     categoryFilter.createEl("option", { value: "", text: "All categories" });
 
@@ -126,6 +163,7 @@ export class GanttTodoBoardView extends ItemView {
 
     this.elements = {
       categoryInput,
+      categorySuggestions,
       titleInput,
       startDateInput,
       endDateInput,
@@ -133,6 +171,10 @@ export class GanttTodoBoardView extends ItemView {
       prioritySelect,
       addTaskButton,
       formError,
+      summary,
+      searchInput,
+      quickFilter,
+      sortSelect,
       categoryFilter,
       storagePath,
       taskRows,
@@ -142,9 +184,36 @@ export class GanttTodoBoardView extends ItemView {
     this.registerDomEvent(addTaskButton, "click", () => {
       void this.onAddOrUpdateTask();
     });
+    this.registerDomEvent(searchInput, "input", () => {
+      this.state.searchQuery = searchInput.value;
+      this.render();
+    });
+    this.registerDomEvent(quickFilter, "change", () => {
+      this.state.quickFilter = quickFilter.value as QuickFilterMode;
+      this.render();
+    });
+    this.registerDomEvent(sortSelect, "change", () => {
+      this.state.sortMode = sortSelect.value as SortMode;
+      this.render();
+    });
     this.registerDomEvent(categoryFilter, "change", () => {
       this.state.categoryFilter = categoryFilter.value;
       this.render();
+    });
+
+    this.registerSubmitOnEnter(categoryInput);
+    this.registerSubmitOnEnter(titleInput);
+    this.registerSubmitOnEnter(startDateInput);
+    this.registerSubmitOnEnter(endDateInput);
+  }
+
+  private registerSubmitOnEnter(element: HTMLInputElement): void {
+    this.registerDomEvent(element, "keydown", (event) => {
+      if (event.key !== "Enter") {
+        return;
+      }
+      event.preventDefault();
+      void this.onAddOrUpdateTask();
     });
   }
 
@@ -277,13 +346,27 @@ export class GanttTodoBoardView extends ItemView {
     }
 
     elements.storagePath.setText(this.state.storagePath ? `Storage: ${this.state.storagePath}` : "");
+    elements.summary.setText(this.getSummaryText());
+    elements.searchInput.value = this.state.searchQuery;
+    elements.quickFilter.value = this.state.quickFilter;
+    elements.sortSelect.value = this.state.sortMode;
+    this.renderCategorySuggestions(elements.categorySuggestions);
     this.renderCategoryFilter(elements.categoryFilter);
     this.renderTable(elements.taskRows);
     this.renderGantt(elements.gantt);
   }
 
+  private renderCategorySuggestions(categorySuggestions: HTMLDataListElement): void {
+    categorySuggestions.empty();
+    for (const category of this.getSortedCategories()) {
+      categorySuggestions.createEl("option", {
+        attr: { value: category }
+      });
+    }
+  }
+
   private renderCategoryFilter(categoryFilter: HTMLSelectElement): void {
-    const categories = Array.from(new Set(this.state.tasks.map((task) => task.category))).sort();
+    const categories = this.getSortedCategories();
     categoryFilter.empty();
     categoryFilter.createEl("option", { value: "", text: "All categories" });
 
@@ -298,9 +381,13 @@ export class GanttTodoBoardView extends ItemView {
     categoryFilter.value = this.state.categoryFilter;
   }
 
+  private getSortedCategories(): string[] {
+    return Array.from(new Set(this.state.tasks.map((task) => task.category))).sort();
+  }
+
   private renderTable(taskRows: HTMLTableSectionElement): void {
     taskRows.empty();
-    const tasks = this.getVisibleTasks().sort((a, b) => a.startDate.localeCompare(b.startDate));
+    const tasks = this.getVisibleTasks();
 
     for (const task of tasks) {
       const row = taskRows.createEl("tr", {
@@ -315,6 +402,18 @@ export class GanttTodoBoardView extends ItemView {
       this.createBadgeCell(row, task.priority, `priority-badge priority-${task.priority}`);
 
       const actions = row.createEl("td");
+      const noteButton = actions.createEl("button", { text: "Note", cls: "gantt-action-button" });
+      this.registerDomEvent(noteButton, "click", (event) => {
+        event.stopPropagation();
+        void this.openTaskNote(task.id);
+      });
+
+      const editButton = actions.createEl("button", { text: "Edit", cls: "gantt-action-button" });
+      this.registerDomEvent(editButton, "click", (event) => {
+        event.stopPropagation();
+        this.startEditingTask(task);
+      });
+
       const deleteButton = actions.createEl("button", { text: "Delete", cls: "gantt-delete-button" });
       this.registerDomEvent(deleteButton, "click", (event) => {
         event.stopPropagation();
@@ -325,32 +424,13 @@ export class GanttTodoBoardView extends ItemView {
         void this.persistAndRender();
       });
 
-      this.registerDomEvent(row, "click", (event) => {
+      this.registerDomEvent(row, "contextmenu", (event) => {
+        event.preventDefault();
         const target = event.target;
         if (!(target instanceof HTMLElement) || target.closest("button")) {
           return;
         }
-
-        if (this.state.editingId === task.id) {
-          this.clearForm();
-          this.render();
-          return;
-        }
-
-        this.state.editingId = task.id;
-        const elements = this.elements;
-        if (!elements) {
-          return;
-        }
-        elements.titleInput.value = task.title;
-        elements.categoryInput.value = task.category;
-        elements.startDateInput.value = task.startDate;
-        elements.endDateInput.value = task.endDate;
-        elements.statusSelect.value = getValidStatus(task.status);
-        elements.prioritySelect.value = getValidPriority(task.priority);
-        elements.addTaskButton.setText("Update Task");
-        this.clearFormError();
-        this.render();
+        void this.openTaskNote(task.id);
       });
     }
   }
@@ -369,8 +449,7 @@ export class GanttTodoBoardView extends ItemView {
 
     this.renderGanttAxis(content, metrics.min, metrics.totalDays, metrics.trackWidth, metrics.labelWidth, metrics.dayWidth);
 
-    const sortedTasks = [...tasks].sort((a, b) => a.startDate.localeCompare(b.startDate));
-    for (const task of sortedTasks) {
+    for (const task of tasks) {
       const row = content.createDiv({ cls: "gantt-row" });
       row.style.gridTemplateColumns = `${metrics.labelWidth}px ${metrics.trackWidth}px`;
 
@@ -390,6 +469,11 @@ export class GanttTodoBoardView extends ItemView {
       bar.style.left = `${(startOffsetDays / metrics.totalDays) * 100}%`;
       bar.style.width = `${(durationDays / metrics.totalDays) * 100}%`;
       bar.title = `${task.category} (${task.startDate} - ${task.endDate})`;
+      this.registerDomEvent(bar, "contextmenu", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void this.openTaskNote(task.id);
+      });
     }
 
     this.appendGlobalTodayLine(content, metrics.todayPercent, metrics.labelWidth, metrics.trackWidth);
@@ -487,11 +571,52 @@ export class GanttTodoBoardView extends ItemView {
     badge.setText(value);
   }
 
+  private startEditingTask(task: TaskItem): void {
+    if (this.state.editingId === task.id) {
+      this.clearForm();
+      this.render();
+      return;
+    }
+
+    this.state.editingId = task.id;
+    const elements = this.elements;
+    if (!elements) {
+      return;
+    }
+
+    elements.titleInput.value = task.title;
+    elements.categoryInput.value = task.category;
+    elements.startDateInput.value = task.startDate;
+    elements.endDateInput.value = task.endDate;
+    elements.statusSelect.value = getValidStatus(task.status);
+    elements.prioritySelect.value = getValidPriority(task.priority);
+    elements.addTaskButton.setText("Update Task");
+    this.clearFormError();
+    this.render();
+  }
+
+  private async openTaskNote(taskId: string): Promise<void> {
+    await this.plugin.createOrOpenTaskNote(taskId);
+    this.state.tasks = this.plugin.getTasks();
+    this.render();
+  }
+
   private getVisibleTasks(): TaskItem[] {
     const tasks = this.state.tasks.map((task, index) => normalizeTask(task, index));
-    if (!this.state.categoryFilter) {
-      return tasks;
-    }
-    return tasks.filter((task) => task.category === this.state.categoryFilter);
+    const filtered = tasks.filter((task) => {
+      if (this.state.categoryFilter && task.category !== this.state.categoryFilter) {
+        return false;
+      }
+      if (!matchesSearchQuery(task, this.state.searchQuery)) {
+        return false;
+      }
+      return matchesQuickFilter(task, this.state.quickFilter);
+    });
+    return sortTasks(filtered, this.state.sortMode);
+  }
+
+  private getSummaryText(): string {
+    const summary = summarizeTasks(this.state.tasks);
+    return `Total ${summary.total} | TODO ${summary.todo} | Doing ${summary.doing} | Done ${summary.done} | Overdue ${summary.overdue}`;
   }
 }
